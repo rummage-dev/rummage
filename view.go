@@ -33,7 +33,11 @@ func (m Model) View() string {
 	}
 
 	if m.err != nil {
-		b.WriteString(m.styles.Cursor.Render(fmt.Sprintf("Error: %v", m.err)))
+		// Sanitized like every other untrusted string: filesystem errors embed
+		// the path (os.ReadDir returns *PathError), so a directory whose name
+		// carries escape sequences would otherwise reach the terminal raw
+		// through this banner even though the entry list itself is safe.
+		b.WriteString(m.styles.Cursor.Render(sanitizeControl(fmt.Sprintf("Error: %v", m.err))))
 		b.WriteString("\n")
 		return m.clampView(b.String())
 	}

@@ -1,6 +1,7 @@
 package finder_test
 
 import (
+	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
@@ -65,5 +66,35 @@ func TestViewSanitizesPreviewContent(t *testing.T) {
 	// The benign text around the escapes should still be previewed.
 	if !strings.Contains(out, "hello") || !strings.Contains(out, "world") {
 		t.Errorf("expected preview to keep the readable text, got:\n%q", out)
+	}
+}
+
+// TestViewSanitizesErrorBanner verifies that escape sequences reaching the
+// error banner are neutralized. Filesystem errors embed the offending path —
+// os.ReadDir returns a *PathError whose Error() contains it — so browsing to
+// a directory whose *name* carries escapes would put them on the terminal
+// through the error line even though the entry list itself is sanitized.
+func TestViewSanitizesErrorBanner(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("Windows forbids control characters in path names")
+	}
+	// A path that cannot be read, carrying OSC set-window-title and BEL.
+	missing := filepath.Join(t.TempDir(), "gone\x1b]0;pwned\x07")
+
+	opts := finder.DefaultOptions()
+	opts.StartDir = missing
+	out := renderDir(t, opts)
+
+	if !strings.Contains(out, "Error:") {
+		t.Fatalf("expected the error banner to render, got:\n%q", out)
+	}
+	if strings.Contains(out, "\x1b]") || strings.Contains(out, "\x07") {
+		t.Fatalf("view leaked a raw OSC/BEL sequence through the error banner:\n%q", out)
+	}
+	// Only the control bytes need to go. The surrounding text stays readable —
+	// "gone?]0;pwned?" is inert once ESC and BEL are gone, and keeping it means
+	// the user can still see which path failed.
+	if !strings.Contains(out, "no such file or directory") {
+		t.Errorf("expected the banner to still explain the failure, got:\n%q", out)
 	}
 }
