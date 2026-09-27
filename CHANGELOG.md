@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-09-27
+
+### Security
+
+- **Escape sequences in the error banner.** Filesystem errors embed the
+  offending path, and the error banner rendered them raw, so a directory whose
+  name carried ANSI/OSC sequences reached the terminal through the banner even
+  though the entry list was already sanitized. The banner now goes through the
+  same control-character sanitization as every other render path.
+- Release binaries are now built with Go 1.25.14 (`toolchain` directive) to pick
+  up the fix for GO-2026-4602 in `os`. The minimum Go version for importers is
+  unchanged at 1.25.0.
+
+### Changed
+
+- Dependency updates: `sahilm/fuzzy` v0.1.3, `golang.org/x/term` v0.45.0, and
+  indirect updates to `x/sys`, `x/text`, `charmbracelet/x/ansi`,
+  `go-runewidth`, `go-isatty`, `go-colorful` and `xo/terminfo`.
+- CI actions bumped: `actions/checkout` v7, `actions/setup-go` v6.5.0,
+  `codecov/codecov-action` v7, `golangci-lint-action` v9.3.0,
+  `goreleaser-action` v7.2.3.
+
+## [0.3.1] - 2026-05-29
+
+### Changed
+
+- README demo recordings (VHS).
+- CI actions bumped: `codecov/codecov-action` v6, `goreleaser-action` v7.
+
 ## [0.3.0] - 2026-05-29
 
 ### Changed
@@ -103,7 +132,9 @@ No breaking changes. Requires Go 1.25+.
   create/delete; hidden-file toggle; symlink expansion; WSL path helpers; and
   fully customizable keybindings and styles.
 
-[Unreleased]: https://github.com/rummage-dev/rummage/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/rummage-dev/rummage/compare/v0.3.2...HEAD
+[0.3.2]: https://github.com/rummage-dev/rummage/compare/v0.3.1...v0.3.2
+[0.3.1]: https://github.com/rummage-dev/rummage/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/rummage-dev/rummage/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/rummage-dev/rummage/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/rummage-dev/rummage/compare/v0.1.1...v0.1.2
