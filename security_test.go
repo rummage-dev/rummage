@@ -83,7 +83,12 @@ func TestViewSanitizesErrorBanner(t *testing.T) {
 
 	opts := finder.DefaultOptions()
 	opts.StartDir = missing
-	out := renderDir(t, opts)
+	// Size the view to the path so a long temp dir (macOS) can't truncate the
+	// banner before the error text.
+	m := finder.NewModel(opts)
+	updated, _ := m.Update(m.Init()())
+	updated, _ = updated.(finder.Model).Update(tea.WindowSizeMsg{Width: len(missing) + 80, Height: 40})
+	out := updated.(finder.Model).View()
 
 	if !strings.Contains(out, "Error:") {
 		t.Fatalf("expected the error banner to render, got:\n%q", out)
